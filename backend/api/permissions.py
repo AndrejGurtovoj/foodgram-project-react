@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsAuthOwnerOrReadOnly(permissions.IsAuthenticated):
+class IsAuthorOrReadOnly(permissions.BasePermission):
     """
     Полный доступ для авторизованного создателя рецепта,
     Для остальных только чтение.

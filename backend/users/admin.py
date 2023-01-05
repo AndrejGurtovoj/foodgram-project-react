@@ -1,23 +1,19 @@
 from django.contrib import admin
 
-from .models import Subscription, User
+from users.models import Follow, User
 
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    fieldsets = (
-        (None, {
-            'fields': [('email', 'first_name'), ('username', 'last_name')]
-        }),
-        ('Права доступа', {
-            'classes': ('collapse',),
-            'fields': [('is_staff', 'is_superuser')],
-        }),
-    )
-    list_display = ('id', 'email', 'username', 'first_name', 'last_name')
-    list_display_links = ('id', 'email', 'username')
-    search_fields = ('email', 'username')
-    list_filter = ('email', 'username')
+    list_display = ('id', 'username', 'email', 'first_name', 'last_name')
+    search_fields = ('username', 'email')
+    list_filter = ('username', 'email')
+    empty_value_display = '-пусто-'
 
 
-admin.site.register(Subscription)
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'author')
+    search_fields = ('user', 'author')
+    list_filter = ('user', 'author')
+    empty_value_display = '-пусто-'

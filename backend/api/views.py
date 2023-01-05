@@ -1,158 +1,133 @@
-import itertools
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.http.response import HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from recipes.serializers import RecipePartialSerializer
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
-from rest_framework import mixins, permissions, status, views, viewsets
+from reportlab.pdfgen import canvas
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .filters import IngredientsFilter, RecipeFilter
-from .permissions import IsAuthOwnerOrReadOnly
-from .serializers import (IngredientsSerializer, RecipesCreateSerializer,
-                          RecipesSerializer, TagsSerializer)
-
-
-class RetrieveListViewSet(mixins.ListModelMixin,
-                          mixins.RetrieveModelMixin,
-                          viewsets.GenericViewSet):
-    """ViewSet с методом GET (list, retrieve)."""
-    pass
+from recipes.models import (Favorite, Ingredient, IngredientAmount, Recipe,
+                            ShoppingCart, Tag)
+from .filters import IngredientSearchFilter, RecipeFilter
+from .pagination import CustomPageNumberPagination
+from .permissions import IsAuthorOrReadOnly
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeListSerializer, RecipeSerializer,
+                          ShoppingCartSerializer, TagSerializer)
 
 
-class CreateDestroyViewSet(mixins.CreateModelMixin,
-                           mixins.DestroyModelMixin,
-                           viewsets.GenericViewSet):
-    """ViewSet с методами POST и DELETE."""
-    pass
-
-
-class IngredientsViewSet(RetrieveListViewSet):
+class TagsViewSet(ReadOnlyModelViewSet):
     """
-    Получение ингредиентов
-    Методы: GET (list, retrieve).
-    """
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientsSerializer
-    permission_classes = [permissions.AllowAny]
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = IngredientsFilter
-    pagination_class = None
-
-
-class TagsViewSet(RetrieveListViewSet):
-    """
-    Получение тегов
-    Методы: GET (list, retrieve).
+    ViewSet для работы с тегами.
+    Добавить тег может администратор.
     """
     queryset = Tag.objects.all()
-    serializer_class = TagsSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
+    permission_classes = (AllowAny,)
+    serializer_class = TagSerializer
 
 
-class RecipesViewSet(viewsets.ModelViewSet):
+class IngredientsViewSet(ReadOnlyModelViewSet):
     """
-    ViewSet рецептов
-    Методы: GET (list, retrieve), POST, PATCH, DELETE.
+    ViewSet для работы с ингредиентами.
+    Добавить ингредиент может администратор.
+    """
+    queryset = Ingredient.objects.all()
+    permission_classes = (AllowAny, )
+    serializer_class = IngredientSerializer
+    filter_backends = [IngredientSearchFilter]
+    search_fields = ('^name',)
+
+
+class RecipeViewSet(ModelViewSet):
+    """
+    ViewSet для работы с рецептами.
+    Для анонимов разрешен только просмотр рецептов.
     """
     queryset = Recipe.objects.all()
-    permission_classes = [IsAuthOwnerOrReadOnly]
-    filter_backends = (DjangoFilterBackend,)
+    permission_classes = [IsAuthorOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
+    pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'partial_update':
-            return RecipesCreateSerializer
-        return RecipesSerializer
+        if self.action in ('list', 'retrieve'):
+            return RecipeListSerializer
+        return RecipeSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=[permissions.IsAuthenticated],
-    )
-    def download_shopping_cart(self, request):
-        """Метод создания и скачивания PDF-файла со списком покупок."""
-        user_recipes = Recipe.objects.filter(shopping_cart__user=request.user)
-        if not user_recipes:
-            error = {'errors': 'Список рецептов пуст'}
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        ingredients = self._get_shopping_cart(user_recipes)
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = ('attachment; '
-                                           'filename="shopping_cart.pdf"')
-        canvas = Canvas(response)
-        pdfmetrics.registerFont(TTFont('FontPDF', 'FontPDF.otf'))
-        canvas.setFont('FontPDF', 50)
-        canvas.drawString(100, 750, 'Список покупок:')
-        canvas.setFont('FontPDF', 30)
-        counter = itertools.count(650, -50)
-        for k, v in ingredients.items():
-            if int(round(v, 2) % 1 * 100) == 0:
-                v = int(v)
-            height = next(counter)
-            canvas.drawString(50, height, f'-  {k} - {v}')
-        canvas.save()
-        return response
-
-    def _get_shopping_cart(self, recipes):
-        """Метод получения списка покупок из избранных рецептов."""
-        ingredients_dict = {}
-        for recipe in recipes:
-            ingredients = recipe.ingredients.all()
-            for ingredient in ingredients:
-                name = ingredient.ingredient.name
-                measurement_unit = ingredient.ingredient.measurement_unit
-                amount = ingredient.amount
-                key = f'{name} ({measurement_unit})'
-                if key not in ingredients_dict.keys():
-                    ingredients_dict[key] = amount
-                else:
-                    ingredients_dict[key] += amount
-        return ingredients_dict
-
-
-class FavoriteShoppingCartView(views.APIView):
-    """
-    Избранные рецепты (добавить/удалить)
-    Методы: POST, DELETE
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = {
-        'favorite': Favorite.objects,
-        'shopping_cart': ShoppingCart.objects
-    }
-
-    def post(self, request, recipe_id):
-        name_url = request.resolver_match.url_name
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        double = self.queryset[name_url].filter(
-            user=request.user,
-            recipe=recipe
-        ).exists()
-        if double:
-            error = {'errors': 'Рецепт уже добавлен'}
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        self.queryset[name_url].create(user=request.user, recipe=recipe)
-        serializer = RecipePartialSerializer(recipe)
+    @staticmethod
+    def post_method_for_actions(request, pk, serializers):
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = serializers(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, recipe_id):
-        name_url = request.resolver_match.url_name
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        try:
-            obj = self.queryset[name_url].get(user=request.user, recipe=recipe)
-        except ObjectDoesNotExist:
-            error = {'errors': 'Рецепт не найден в списке'}
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        obj.delete()
+    @staticmethod
+    def delete_method_for_actions(request, pk, model):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        model_obj = get_object_or_404(model, user=user, recipe=recipe)
+        model_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["POST"],
+            permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk):
+        return self.post_method_for_actions(
+            request=request, pk=pk, serializers=FavoriteSerializer)
+
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=Favorite)
+
+    @action(detail=True, methods=["POST"],
+            permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, pk):
+        return self.post_method_for_actions(
+            request=request, pk=pk, serializers=ShoppingCartSerializer)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_method_for_actions(
+            request=request, pk=pk, model=ShoppingCart)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def download_shopping_cart(self, request):
+        final_list = {}
+        ingredients = IngredientAmount.objects.filter(
+            recipe__carts__user=request.user).values_list(
+            'ingredient__name', 'ingredient__measurement_unit',
+            'amount'
+        )
+        for item in ingredients:
+            name = item[0]
+            if name not in final_list:
+                final_list[name] = {
+                    'measurement_unit': item[1],
+                    'amount': item[2]
+                }
+            else:
+                final_list[name]['amount'] += item[2]
+        pdfmetrics.registerFont(
+            TTFont('Handicraft', 'data/Handicraft.ttf', 'UTF-8'))
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="shopping_list.pdf"')
+        page = canvas.Canvas(response)
+        page.setFont('Handicraft', size=24)
+        page.drawString(200, 800, 'Список покупок')
+        page.setFont('Handicraft', size=16)
+        height = 750
+        for i, (name, data) in enumerate(final_list.items(), 1):
+            page.drawString(75, height, (f'{i}. {name} - {data["amount"]} '
+                                         f'{data["measurement_unit"]}'))
+            height -= 25
+        page.showPage()
+        page.save()
+        return response

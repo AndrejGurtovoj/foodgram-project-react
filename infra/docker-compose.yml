@@ -1,21 +1,20 @@
 version: '3.3'
 services:
   db:
-    image: postgres:14.5
+    image: postgres:13-alpine
     volumes:
       - /var/lib/postgresql/data/
     env_file:
       - ./.env
-    restart: always
 
   backend:
     image: andreygurtovoy/foodgram-project:latest
+    expose:
+      - 8000
     restart: always
     volumes:
-      - data_value:/app/data/
-      - static_value:/app/static/
-      - media_value:/app/media/
-      - redoc:/app/api/docs/
+      - static_value:/app/backend_static/
+      - media_value:/app/backend_media/
     depends_on:
       - db
     env_file:
@@ -25,25 +24,21 @@ services:
     image: andreygurtovoy/foodgram-project:latest
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on:
-      - backend
   nginx:
     image: nginx:1.18.0
     ports:
-      - "81:80"
+      - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_value:/app/static/
+      - media_value:/app/media/
       - ../frontend/build:/usr/share/nginx/html/
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
-      - redoc:/usr/share/nginx/html/api/docs/
+      - ../docs:/usr/share/nginx/html/api/docs/
+    restart: always
     depends_on:
       - frontend
-    restart: always
 
 volumes:
+  postgres_data:
   static_value:
   media_value:
-  postgres_data:
-  data_value:
-  redoc:

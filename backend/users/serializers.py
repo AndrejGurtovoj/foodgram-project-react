@@ -1,116 +1,92 @@
-import re
-
-from django.contrib.auth import password_validation as pass_val
-from recipes.serializers import RecipePartialSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
-from .models import Subscription, User
+from recipes.models import Recipe
+from .models import Follow, User
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения пользователей."""
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """
+    Сериализатор для регистрации пользователя.
+    """
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
+class CustomUserSerializer(UserSerializer):
+    """
+    Сериализатор для пользователя.
+    get_is_subscribed показывает,
+    подписан ли текущий пользователь на просматриваемого.
+    """
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  'is_subscribed')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed')
 
-    def get_is_subscribed(self, subscribe):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            return Subscription.objects.filter(
-                user=user,
-                subscribe=subscribe
-            ).exists()
-        return False
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания пользователей с валидацией."""
-    password = serializers.CharField(
-        style={'input_type': 'password'},
-        label='Пароль',
-        write_only=True
-    )
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
-
-    def validate_username(self, username):
-        if username == 'me':
-            raise serializers.ValidationError(
-                'Недопустимое имя пользователя!'
-            )
-        if not re.match(r'^[\w.@+-]+\Z', username, flags=re.ASCII):
-            raise serializers.ValidationError(
-                ('Имя пользователя может содержать латиницу, '
-                 'цифры и знаки @ / . / + / - / _')
-            )
-        elif len(username) < 4:
-            raise serializers.ValidationError(
-                'Логин должен содержать более 3 символов!'
-            )
-        return username
-
-    def validate_first_name(self, first_name):
-        if not first_name.istitle():
-            raise serializers.ValidationError(
-                'Имя должно начинаться с заглавной буквы!'
-            )
-        elif len(first_name) < 2:
-            raise serializers.ValidationError(
-                'Имя должно содержать от 2 символов!'
-            )
-        return first_name
-
-    def validate_last_name(self, last_name):
-        if not last_name.istitle():
-            raise serializers.ValidationError(
-                'Фамилия должна начинаться с заглавной буквы!'
-            )
-        return last_name
-
-    def validate_password(self, password):
-        password_validators = pass_val.get_default_password_validators()
-        errors = []
-        for validator in password_validators:
-            try:
-                validator.validate(password)
-            except serializers.ValidationError as error:
-                errors.append(error)
-        if errors:
-            raise serializers.ValidationError(errors)
-        return password
-
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для краткого отображения сведений о рецепте
+    """
     class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  'password')
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class SubscribeSerializer(serializers.ModelSerializer):
-    """Сериализатор для просмотра подписок."""
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipePartialSerializer(many=True)
-    recipes_count = serializers.SerializerMethodField()
+class FollowSerializer(CustomUserSerializer):
+    """
+    Сериализатор для вывода подписок пользователя
+    """
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
-        read_only_fields = ('email', 'id', 'username', 'first_name',
-                            'last_name', 'is_subscribed', 'recipes',
-                            'recipes_count')
 
-    def get_is_subscribed(self, subscribe):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            return Subscription.objects.filter(
-                user=user,
-                subscribe=subscribe
-            ).exists()
-        return False
+    @staticmethod
+    def get_recipes_count(obj):
+        return obj.recipes.count()
 
-    def get_recipes_count(self, subscribe):
-        return subscribe.recipes.count()
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes = obj.recipes.all()
+        recipes_limit = request.query_params.get('recipes_limit')
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        return ShortRecipeSerializer(recipes, many=True).data
