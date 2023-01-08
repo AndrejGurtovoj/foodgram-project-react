@@ -121,17 +121,19 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    "LOGIN_FIELD": 'email',
-    "SEND_ACTIVATION_EMAIL": False,
+    'LOGIN_FIELD': 'email',
+    'SEND_ACTIVATION_EMAIL': False,
+    'USER_ID_FIELD': 'id',
     'HIDE_USERS': False,
-    "SERIALIZERS": {
-        "user_create": "users.serializers.CustomUserCreateSerializer",
-        "user": "users.serializers.CustomUserSerializer",
-        "current_user": "users.serializers.CustomUserSerializer",
+    'SERIALIZERS': {
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
     },
     'PERMISSIONS': {
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list': ['rest_framework.permissions.AllowAny']
+        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'token_create': ['rest_framework.permissions.AllowAny'],
+        'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     },
 }
 
@@ -139,7 +141,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-EMAIL_FROM = 'admin@yamdb.com'
+EMAIL_FROM = 'admin@backend.com'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=14),

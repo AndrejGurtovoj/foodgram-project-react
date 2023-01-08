@@ -13,11 +13,11 @@ class CustomUserManager(BaseUserManager):
         other_fields.setdefault('is_superuser', True)
         other_fields.setdefault('is_active', True)
 
-        if not other_fields.get("is_staff"):
-            raise ValueError("Отказано в доступе")
+        if not other_fields.get('is_staff'):
+            raise ValueError('Отказано в доступе')
 
-        if not other_fields.get("is_superuser"):
-            raise ValueError("Отказано в доступе")
+        if not other_fields.get('is_superuser'):
+            raise ValueError('Отказано в доступе')
 
         return self.create_user(
             email, username, first_name, last_name,
@@ -28,7 +28,7 @@ class CustomUserManager(BaseUserManager):
                     email, password, **other_fields):
 
         if not email:
-            raise ValueError("Укажите email!")
+            raise ValueError('Укажите email!')
 
         email = self.normalize_email(email)
         user = self.model(
@@ -77,7 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_superuser
 
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f'{self.first_name} {self.last_name}'
 
     def get_short_name(self):
         return self.username
