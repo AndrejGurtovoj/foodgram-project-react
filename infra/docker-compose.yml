@@ -8,9 +8,8 @@ services:
       - ./.env
   
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: andreygurtovoy/foodgram_backend:latest
+    restart: always
     volumes:
       - static_value:/backend/static/
       - media_value:/backend/media/
@@ -38,3 +37,4 @@ volumes:
   postgres_data:
   static_value:
   media_value:
+  result_build:
