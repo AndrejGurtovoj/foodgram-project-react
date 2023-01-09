@@ -8,9 +8,6 @@ services:
       - ./.env
   
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
     image: andreygurtovoy/foodgram_backend:latest
     restart: always
     volumes:
