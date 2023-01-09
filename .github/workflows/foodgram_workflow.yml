@@ -2,7 +2,6 @@
 name: foodgram_backend workflow
 
 on: [push]
-if: github.ref == 'refs/heads/master'
 
 jobs:
   tests:
