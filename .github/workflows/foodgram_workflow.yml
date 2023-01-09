@@ -67,9 +67,3 @@ jobs:
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             sudo docker-compose up -d
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-    - name: send message
-        message: успешно выполнен!
