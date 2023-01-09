@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.8'
 services:
   db:
     image: postgres:13.0-alpine
@@ -8,6 +8,9 @@ services:
       - ./.env
   
   backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     image: andreygurtovoy/foodgram_backend:latest
     restart: always
     volumes:
@@ -25,7 +28,7 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
   nginx:
-    image: nginx:1.18.0-alpine
+    image: nginx:1.21.3-alpine
     ports:
       - "81:80"
     volumes:
