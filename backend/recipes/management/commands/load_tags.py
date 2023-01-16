@@ -1,30 +1,16 @@
-import csv
-import os
-
-from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management import BaseCommand
 
 from recipes.models import Tag
 
-DATA_ROOT = os.path.join(settings.BASE_DIR, 'data')
-
 
 class Command(BaseCommand):
+    help = 'Создаем тэги'
 
-    def add_arguments(self, parser):
-        parser.add_argument('filename', default='tags.csv', nargs='?',
-                            type=str)
-
-    def handle(self, *args, **options):
-        try:
-            with open(os.path.join(DATA_ROOT, options['filename']), 'r',
-                      encoding='utf-8') as f:
-                datareader = csv.reader(f)
-                for row in datareader:
-                    Tag.objects.get_or_create(
-                        name=row[0],
-                        color=row[1],
-                        slug=row[2]
-                    )
-        except FileNotFoundError:
-            raise CommandError('Добавьте файл tags в директорию data')
+    def handle(self, *args, **kwargs):
+        data = [
+            {'name': 'Завтрак', 'color': '#E26C2D', 'slug': 'breakfast'},
+            {'name': 'Обед', 'color': '#49B64E', 'slug': 'dinner'},
+            {'name': 'Ужин', 'color': '#8775D2', 'slug': 'supper'}
+        ]
+        Tag.objects.bulk_create(Tag(**tag) for tag in data)
+        self.stdout.write(self.style.SUCCESS('Все тэги загружены!'))
