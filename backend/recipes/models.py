@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -31,10 +32,12 @@ class Tag(models.Model):
     name = models.CharField(
         'Название тега',
         max_length=200,
+        unique=True,
     )
-    color = models.CharField(
-        'Цвет',
-        max_length=7
+    color = ColorField(
+        max_length=7,
+        unique=True,
+        verbose_name='HEX цвет',
     )
     slug = models.SlugField(
         'Адрес',
@@ -45,6 +48,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ['-id']
 
     def __str__(self):
         return self.name

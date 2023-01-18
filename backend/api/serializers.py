@@ -112,7 +112,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 })
             ingredients_list.append(ingredient_id)
             amount = ingredient['amount']
-            if int(amount) <= 0:
+            if int(amount) < 1:
                 raise serializers.ValidationError({
                     'amount': 'Количество ингредиента должно быть больше нуля!'
                 })
@@ -129,12 +129,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                     'tags': 'Тэги должны быть уникальными!'
                 })
             tags_list.append(tag)
-
-        cooking_time = data['cooking_time']
-        if int(cooking_time) <= 0:
-            raise serializers.ValidationError({
-                'cooking_time': 'Время приготовления должно быть больше 0!'
-            })
         return data
 
     @staticmethod
