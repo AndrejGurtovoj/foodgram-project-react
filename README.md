@@ -1,6 +1,6 @@
 # Foodgram - Продуктовый помощник!!!
 
-![example workflow](https://github.com/AndrejGurtovoj/foodgram_backend/actions/workflows/foodgram_workflow.yml/badge.svg)
+[![example workflow](https://github.com/AndrejGurtovoj/foodgram_backend/actions/workflows/foodgram_workflow.yml/badge.svg)
 ## Описание проекта
 Приложение в котором пользователи могут публиковать рецепты, подписываться на публикации других пользователей,
 добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать список продуктов,
@@ -66,6 +66,6 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```angular2html
 docker-compose exec backend python manage.py loaddata dump.json
 ```
-__После запуска проект будут доступен по адресу: http://localhost:81/__
+__После запуска проект будет доступен по адресу: http://localhost:81/__
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>
