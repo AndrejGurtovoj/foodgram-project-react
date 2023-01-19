@@ -1,6 +1,6 @@
 # Foodgram - Продуктовый помощник!!!
 
-[![example workflow](https://github.com/AndrejGurtovoj/backend/actions/workflows/foodgram_workflow.yml/badge.svg)
+[![example workflow](https://github.com/AndrejGurtovoj/foodgram_backend workflow/actions/workflows/foodgram_workflow.yml/badge.svg)
 ## Описание проекта
 Приложение в котором пользователи могут публиковать рецепты, подписываться на публикации других пользователей,
 добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать список продуктов,
