@@ -47,7 +47,7 @@ SECRET_KEY=p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs
 
 Выполнить команду:
 ```
-docker-compose up -d
+docker-compose up -d --build
 ```
 Сделать миграции:
 ```
@@ -65,6 +65,6 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```angular2html
 docker-compose exec backend python manage.py loaddata dump.json
 ```
-__После запуска проект будет доступен по адресу: http://localhost:81/__
+__После запуска проект будет доступен по адресу: http://localhost/__
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>
