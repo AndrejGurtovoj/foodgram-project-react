@@ -65,6 +65,6 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```angular2html
 docker-compose exec backend python manage.py loaddata dump.json
 ```
-__После запуска проект будет доступен по адресу: http://localhost/__
+__После запуска проект будет доступен по адресу: http://localhost/user/__
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>
