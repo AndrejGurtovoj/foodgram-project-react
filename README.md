@@ -47,24 +47,27 @@ SECRET_KEY=p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs
 
 Выполнить команду:
 ```
-docker-compose up -d --build
+sudo docker-compose up -d --build
 ```
 Сделать миграции:
 ```
-docker-compose exec backend python manage.py migrate
+sudo docker-compose exec backend python manage.py migrate
 ```
 Создать суперпользователя:
 ```
-docker-compose exec bakend python manage.py createsuperuser
+sudo docker-compose exec bakend python manage.py createsuperuser
 ```
 Собрать статику:
 ```
-docker-compose exec backend python manage.py collectstatic --no-input
+sudo docker-compose exec backend python manage.py collectstatic --no-input
 ```
-заполненить базу данными:
-```angular2html
-docker-compose exec backend python manage.py loaddata dump.json
+Заполненить базу данными:
 ```
-__После запуска проект будет доступен по адресу: http://localhost/user/__
+sudo docker compose exec backend python manage.py load_ingredients
+```
+```
+sudo docker compose exec backend python manage.py load_tags
+```
+__После запуска проект будет доступен по адресу: http://localhost/__
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>

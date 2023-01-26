@@ -44,7 +44,7 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
-        'Имя пользователя',
+        'Наименование пользователя',
         max_length=150,
         unique=True,
     )
