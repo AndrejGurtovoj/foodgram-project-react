@@ -27,7 +27,6 @@ class TagsViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     serializer_class = TagSerializer
     pagination_class = None
-    
 
 
 class IngredientsViewSet(ReadOnlyModelViewSet):
@@ -101,7 +100,7 @@ class RecipeViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = IngredientAmount.objects.filter(
-            recipe__shopping_list__user=request.user
+            recipe__author=request.user
         ).order_by('ingredient__name').values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
