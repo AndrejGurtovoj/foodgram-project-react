@@ -3,7 +3,7 @@
 ## Описание проекта
 Приложение в котором пользователи могут публиковать рецепты, подписываться на публикации других пользователей,
 добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать список продуктов,
-необходимых для приготовления выбранных блюд.
+необходимых для приготовления выбранных блюд!
 
 Проект доступен по адресу - <a href="http://51.250.107.182">51.250.107.182</a>
 
@@ -26,12 +26,12 @@ https://github.com/AndrejGurtovoj/foodgram-project-react.git
 __Запустить проект в контейнерах Docker:__
 
 перейти в каталог **`infra`** и создать файл **`.env`**:
-```angular2html
+```
 cd infra
 touch .env
 ```
 запонить его данными:
-```angular2html
+```
 nano .env
 ```
 ```
@@ -44,7 +44,6 @@ DB_PORT=5432
 SECRET_KEY=p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs
 
 ```
-
 Выполнить команду:
 ```
 sudo docker-compose up -d --build
@@ -68,6 +67,6 @@ sudo docker compose exec backend python manage.py load_ingredients
 ```
 sudo docker compose exec backend python manage.py load_tags
 ```
-__После запуска проект будет доступен по адресу: http://localhost/__
+__После запуска проект будет доступен по адресу:  http://localhost/__
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>
