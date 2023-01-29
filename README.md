@@ -5,7 +5,7 @@
 добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать список продуктов,
 необходимых для приготовления выбранных блюд!
 
-Проект доступен по адресу - <a href="http://51.250.107.182">51.250.107.182</a>
+Проект доступен по адресу - <a href="http://51.250.23.36">51.250.23.36</a>
 
 ### Для реализации проекта используются:
 
@@ -67,6 +67,9 @@ sudo docker compose exec backend python manage.py load_ingredients
 ```
 sudo docker compose exec backend python manage.py load_tags
 ```
-__После запуска проект будет доступен по адресу:  http://localhost/__
+```
+sudo docker compose exec backend python manage.py dumpdata > dump.json
+```
+После запуска проект будет доступен по адресу:  <a href="http://51.250.23.36">51.250.23.36</a>
 
 #### Автор проекта:  <a href= "https://github.com/AndrejGurtovoj">__Андрей Гуртовой__<a>
