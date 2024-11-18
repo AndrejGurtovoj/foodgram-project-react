@@ -8,7 +8,7 @@ services:
       - ./.env
   
   backend:
-    image: andreygurtovoy/foodgram_backend
+    image: andreygurtovoy/backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -19,7 +19,7 @@ services:
       - ./.env
 
   frontend:
-    image: andreygurtovoy/foodgram_frontend
+    image: andreygurtovoy/frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
   
