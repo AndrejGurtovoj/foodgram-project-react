@@ -54,7 +54,7 @@ sudo docker-compose exec backend python manage.py migrate
 ```
 Создать суперпользователя:
 ```
-sudo docker-compose exec bakend python manage.py createsuperuser
+sudo compose exec backend python manage.py createsuperuser
 ```
 Собрать статику:
 ```
