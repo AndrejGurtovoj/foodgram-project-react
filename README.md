@@ -12,6 +12,10 @@
 - __Python__
 - __Django__
 - __Django Rest Framework__
+- __djoser__
+- __Pillow__
+- __Python-dotenv__
+- __Requests__
 - __Gunicorn__
 - __NGINX__
 - __PostgreSQL__
